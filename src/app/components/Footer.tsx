@@ -1,5 +1,4 @@
 import { Linkedin, Instagram, Facebook, Youtube } from 'lucide-react';
-import mgbLogo from 'figma:asset/9eaf8d1fa69868918f60ca6c8ad47abee34590eb.png';
 import { Footer as FooterUI } from '@/app/components/ui/footer';
 
 const socialLinks = [
@@ -37,7 +36,7 @@ export function Footer() {
 
   return (
     <FooterUI
-      logoSrc={mgbLogo}
+      logoSrc="https://via.placeholder.com/120x40/ffffff/000000?text=MGB"
       companyName="MGB Design"
       description="Empowering businesses with intelligent design solutions. We craft digital experiences that resonate."
       usefulLinks={usefulLinks}

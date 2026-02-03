@@ -13,6 +13,31 @@ const socialLinks = [
 
 const services = ['UI/UX', 'Development', 'Branding', '3D Animation'];
 
+// Email sending function using Netlify function
+async function sendEmailViaNetlify(formData: any) {
+  const response = await fetch('/.netlify/functions/send-email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: formData.fullName,
+      email: formData.email,
+      company: formData.company,
+      phone: formData.phone,
+      interests: formData.interests,
+      message: formData.message,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export function Contact() {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -25,14 +50,18 @@ export function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Send email via Netlify function
+      await sendEmailViaNetlify(formData);
+
+      // Success - reset form and show success message
       setIsSubmitted(true);
       setFormData({ 
         fullName: '', 
@@ -43,11 +72,17 @@ export function Contact() {
         message: '' 
       });
 
-      // Reset success message after 3 seconds
+      // Reset success message after 5 seconds
       setTimeout(() => {
         setIsSubmitted(false);
-      }, 3000);
-    }, 1500);
+      }, 5000);
+
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setSubmitError('Failed to send message. Please try again or contact us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -83,11 +118,11 @@ export function Contact() {
               <div className="w-16 border-t border-black/20" />
 
               <a 
-                href="mailto:hello@mgbdesign.com" 
+                href="mailto:mgbmediagroup@gmail.com" 
                 className="inline-flex items-center gap-2 text-sm text-black hover:text-gray-600 transition-colors"
               >
                 <Mail size={16} />
-                <span>hello@mgbdesign.com</span>
+                <span>mgbmediagroup@gmail.com</span>
               </a>
             </div>
 
@@ -112,6 +147,24 @@ export function Contact() {
           <div className="space-y-8">
             <h3 className="text-3xl font-normal text-black text-center">Let's talk</h3>
 
+            {/* Success Message */}
+            {isSubmitted && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 text-sm text-center">
+                  ✓ Message sent successfully! We'll get back to you soon.
+                </p>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {submitError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800 text-sm text-center">
+                  {submitError}
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Full Name and Company */}
               <div className="grid grid-cols-2 gap-6">
@@ -123,7 +176,8 @@ export function Contact() {
                     value={formData.fullName}
                     onChange={handleChange}
                     required
-                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors"
+                    disabled={isSubmitting}
+                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors disabled:opacity-50"
                     placeholder="Full name"
                   />
                 </div>
@@ -134,7 +188,8 @@ export function Contact() {
                     name="company"
                     value={formData.company}
                     onChange={handleChange}
-                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors"
+                    disabled={isSubmitting}
+                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors disabled:opacity-50"
                     placeholder="Company"
                   />
                 </div>
@@ -150,7 +205,8 @@ export function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors"
+                    disabled={isSubmitting}
+                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors disabled:opacity-50"
                     placeholder="Email"
                   />
                 </div>
@@ -161,7 +217,8 @@ export function Contact() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors"
+                    disabled={isSubmitting}
+                    className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors disabled:opacity-50"
                     placeholder="Phone"
                   />
                 </div>
@@ -176,7 +233,8 @@ export function Contact() {
                       key={service}
                       type="button"
                       onClick={() => toggleInterest(service)}
-                      className={`px-5 py-2 text-sm transition-all ${
+                      disabled={isSubmitting}
+                      className={`px-5 py-2 text-sm transition-all disabled:opacity-50 ${
                         formData.interests.includes(service)
                           ? 'bg-black text-white border border-black'
                           : 'bg-transparent border border-black/20 text-black hover:border-black'
@@ -198,7 +256,8 @@ export function Contact() {
                   onChange={handleChange}
                   required
                   rows={3}
-                  className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors resize-none"
+                  disabled={isSubmitting}
+                  className="w-full bg-transparent border-b border-black/20 py-3 text-sm text-black placeholder:text-black/40 focus:border-black focus:outline-none transition-colors resize-none disabled:opacity-50"
                   placeholder="Tell us more about your project!"
                 />
               </div>

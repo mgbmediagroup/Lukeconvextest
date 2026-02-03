@@ -1,7 +1,6 @@
 import { WebGLShader } from "@/app/components/ui/web-gl-shader";
 import { Button } from '@/app/components/ui/neon-button';
 import { InfiniteSlider } from "@/app/components/ui/infinite-slider";
-import mgbLogo from 'figma:asset/9eaf8d1fa69868918f60ca6c8ad47abee34590eb.png';
 
 export function Hero() {
   const scrollToContact = () => {
@@ -44,7 +43,9 @@ export function Hero() {
       <header className="absolute top-0 left-0 right-0 z-20 flex flex-row justify-between items-center px-8 lg:px-16 py-6">
         {/* Logo */}
         <div>
-          <img src={mgbLogo} alt="MGB Design" className="h-10 w-auto" />
+          <div className="h-10 w-20 bg-white/20 rounded flex items-center justify-center text-white font-bold">
+            MGB
+          </div>
         </div>
 
         {/* Navigation */}
