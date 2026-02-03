@@ -30,12 +30,13 @@ async function sendEmailViaNetlify(formData: any) {
     }),
   });
 
+  const data = await response.json();
+  
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+    throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
   }
 
-  return response.json();
+  return data;
 }
 
 export function Contact() {
@@ -59,7 +60,8 @@ export function Contact() {
 
     try {
       // Send email via Netlify function
-      await sendEmailViaNetlify(formData);
+      const result = await sendEmailViaNetlify(formData);
+      console.log('Email sent successfully:', result);
 
       // Success - reset form and show success message
       setIsSubmitted(true);
@@ -79,7 +81,8 @@ export function Contact() {
 
     } catch (error) {
       console.error('Failed to send message:', error);
-      setSubmitError('Failed to send message. Please try again or contact us directly.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setSubmitError(`Failed to send message: ${errorMessage}. Please try again or contact us directly.`);
     } finally {
       setIsSubmitting(false);
     }

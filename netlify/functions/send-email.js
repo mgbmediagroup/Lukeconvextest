@@ -1,29 +1,29 @@
+/*
+  IMPORTANT FOR DEPLOYMENT:
+  1. Go to your Netlify site → Site settings → Environment variables
+  2. Add new variable: RESEND_API_KEY = re_Gype9cus_2J4X6qKfVHjvXChrixtbLxSc
+  3. Scope: All (or at least Runtime + Functions)
+  4. Save → Trigger deploy
+*/
+
 const { Resend } = require('resend');
 
-exports.handler = async (event, context) => {
-  // Only allow POST requests
+exports.handler = async (event) => {
+  // Security: only allow POST
   if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('RESEND_API_KEY is missing in environment variables!');
     return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Email service not configured' })
     };
   }
 
-  // CORS headers
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-
-  // Handle preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
-  }
+  const resend = new Resend(apiKey);
 
   try {
     const { name, email, company, phone, interests, message } = JSON.parse(event.body);
@@ -32,13 +32,9 @@ exports.handler = async (event, context) => {
     if (!name || !email || !message) {
       return {
         statusCode: 400,
-        headers,
         body: JSON.stringify({ error: 'Missing required fields' }),
       };
     }
-
-    // Initialize Resend with API key from environment
-    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Format the email content
     const emailContent = `
@@ -52,7 +48,6 @@ exports.handler = async (event, context) => {
       <p>${message.replace(/\n/g, '<br>')}</p>
     `;
 
-    // Send email
     const { data, error } = await resend.emails.send({
       from: 'Contact Form <onboarding@resend.dev>',
       to: ['mgbmediagroup@gmail.com'],
@@ -60,31 +55,17 @@ exports.handler = async (event, context) => {
       html: emailContent,
     });
 
-    if (error) {
-      console.error('Resend error:', error);
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'Failed to send email' }),
-      };
-    }
+    if (error) throw error;
 
     return {
       statusCode: 200,
-      headers,
-      body: JSON.stringify({ 
-        success: true, 
-        emailId: data?.id,
-        message: 'Email sent successfully' 
-      }),
+      body: JSON.stringify({ success: true, id: data.id })
     };
-
-  } catch (error) {
-    console.error('Function error:', error);
+  } catch (err) {
+    console.error('Resend error:', err);
     return {
       statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Internal server error' }),
+      body: JSON.stringify({ error: 'Failed to send email' })
     };
   }
 };
