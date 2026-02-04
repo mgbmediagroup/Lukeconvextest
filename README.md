@@ -3,6 +3,8 @@
 
 This is a code bundle for Luke Convex test with Convex and Resend integration. The original project is available at https://www.figma.com/design/9hovsK5bQgzgPf7yVpOgIz/Luke-Convex-test.
 
+**✅ Contact form now working with Netlify Functions + Resend integration!**
+
 ## Features
 
 - **Convex Integration**: Real-time database with automatic syncing
