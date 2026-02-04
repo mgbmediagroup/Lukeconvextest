@@ -14,6 +14,13 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  // Debug: Log all environment variables (remove this after testing)
+  console.log('Environment check:', {
+    hasResendKey: !!process.env.RESEND_API_KEY,
+    keyLength: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0,
+    keyEnding: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.slice(-4) : 'none'
+  });
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error('RESEND_API_KEY is missing in environment variables!');
