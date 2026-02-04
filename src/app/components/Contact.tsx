@@ -13,15 +13,15 @@ const socialLinks = [
 
 const services = ['UI/UX', 'Development', 'Branding', '3D Animation'];
 
-// Email sending function using Netlify function
-async function sendEmailViaNetlify(formData: any) {
-  const response = await fetch('/.netlify/functions/send-email', {
+// Email sending function using modern Netlify function
+async function sendContactForm(formData: any) {
+  const response = await fetch('/.netlify/functions/send-contact', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      name: formData.fullName,
+      fullName: formData.fullName,
       email: formData.email,
       company: formData.company,
       phone: formData.phone,
@@ -32,7 +32,7 @@ async function sendEmailViaNetlify(formData: any) {
 
   const data = await response.json();
   
-  if (!response.ok) {
+  if (!response.ok || !data.success) {
     throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
   }
 
@@ -58,9 +58,16 @@ export function Contact() {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    // Validate required fields
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setSubmitError('Please fill in all required fields (Name, Email, and Message).');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // Send email via Netlify function
-      const result = await sendEmailViaNetlify(formData);
+      const result = await sendContactForm(formData);
       console.log('Email sent successfully:', result);
 
       // Success - reset form and show success message
@@ -82,7 +89,7 @@ export function Contact() {
     } catch (error) {
       console.error('Failed to send message:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setSubmitError(`Failed to send message: ${errorMessage}. Please try again or contact us directly.`);
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
